@@ -133,9 +133,29 @@ def train_main(
     # dataloader, optimizers, losses, hooks, etc. "Task" will also have information
     # about phases (train, test) both. The trainer then sets up distributed
     # training.
-    trainer = SelfSupervisionTrainer(
-        cfg, dist_run_id, checkpoint_path, checkpoint_folder, hooks
-    )
+    if cfg.ACTNN > 0:
+        import actnn
+        controller = actnn.controller.Controller(
+            default_bit=cfg.ACTNN, auto_prec=False)
+
+        def pack_hook(x):
+            r = controller.quantize(x)
+            del x
+            return r
+
+        def unpack_hook(x):
+            r = controller.dequantize(x)
+            del x
+            return r
+
+        with torch.autograd.graph.saved_tensors_hooks(pack_hook, unpack_hook):
+            trainer = SelfSupervisionTrainer(
+                cfg, dist_run_id, checkpoint_path, checkpoint_folder, hooks, controller
+            )
+    else:
+        trainer = SelfSupervisionTrainer(
+            cfg, dist_run_id, checkpoint_path, checkpoint_folder, hooks
+        )
     trainer.train()
     logging.info("All Done!")
     # close the logging streams including the filehandlers

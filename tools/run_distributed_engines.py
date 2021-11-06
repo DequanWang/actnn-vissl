@@ -39,35 +39,12 @@ def hydra_main(overrides: List[Any]):
         ), "Please 'pip install submitit' to schedule jobs on SLURM"
         launch_distributed_on_slurm(engine_name=args.engine_name, cfg=config)
     else:
-        if config.ACTNN < 1:
-            launch_distributed(
-                cfg=config,
-                node_id=args.node_id,
-                engine_name=args.engine_name,
-                hook_generator=default_hook_generator,
-            )
-        else:
-            import actnn, torch
-            controller = actnn.controller.Controller(
-                default_bit=config.ACTNN, auto_prec=False)
-
-            def pack_hook(x):
-                r = controller.quantize(x)
-                del x
-                return r
-
-            def unpack_hook(x):
-                r = controller.dequantize(x)
-                del x
-                return r
-
-            with torch.autograd.graph.saved_tensors_hooks(pack_hook, unpack_hook):
-                launch_distributed(
-                cfg=config,
-                node_id=args.node_id,
-                engine_name=args.engine_name,
-                hook_generator=default_hook_generator,
-            )
+        launch_distributed(
+            cfg=config,
+            node_id=args.node_id,
+            engine_name=args.engine_name,
+            hook_generator=default_hook_generator,
+        )
 
 
 if __name__ == "__main__":

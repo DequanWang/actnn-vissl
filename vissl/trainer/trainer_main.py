@@ -79,6 +79,7 @@ class SelfSupervisionTrainer(object):
         checkpoint_path: str = None,
         checkpoint_folder: str = None,
         hooks: List[ClassyHook] = None,
+        controller = None,
     ):
         self.cfg = cfg
         self.dist_run_id = dist_run_id
@@ -94,6 +95,8 @@ class SelfSupervisionTrainer(object):
         if hooks is None:
             hooks = []
         self.task.set_hooks(hooks)
+
+        self.controller = controller
 
     def setup_distributed(self, use_gpu: bool):
         """
@@ -174,6 +177,8 @@ class SelfSupervisionTrainer(object):
             logging.info("Loss is: {}".format(task.loss))
         logging.info("Starting training....")
 
+        if self.controller is not None:
+            self.controller.filter_tensors(task.model.named_parameters())
         while phase_idx + 1 < len(task.phases):
             self._advance_phase(task)  # advances task.phase_idx
             phase_idx += 1
