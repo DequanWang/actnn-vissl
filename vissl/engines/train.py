@@ -115,6 +115,15 @@ def train_main(
     if local_rank == 0:
         print_cfg(cfg)
         logging.info("System config:\n{}".format(collect_env_info()))
+        # it's important to only do this once in WandB
+        if cfg.HOOKS.WANDB_SETUP.USE_WANDB:
+            import wandb
+            wandb.init(
+                config=cfg.to_dict(),
+                entity=cfg.HOOKS.WANDB_SETUP.ENTITY_NAME,
+                project=cfg.HOOKS.WANDB_SETUP.PROJECT_NAME,
+                name=cfg.HOOKS.WANDB_SETUP.EXP_NAME
+            )
 
     # get the hooks - these hooks are executed per replica
     hooks = hook_generator(cfg)
