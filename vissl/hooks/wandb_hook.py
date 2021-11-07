@@ -180,7 +180,7 @@ class SSLWandbHook(ClassyHook):
         if iteration % task.config["LOG_FREQUENCY"] == 0 or (
             iteration <= 100 and iteration % 5 == 0
         ):
-            logging.info(f"Logging metrics. Iteration {iteration}")
+            # logging.info(f"Logging metrics. Iteration {iteration}")
             out_dict["Training/Loss"] = round(task.last_batch.loss.data.cpu().item(), 5)
             out_dict["Training/Learning_rate"] = round(task.optimizer.options_view.lr, 5)
 

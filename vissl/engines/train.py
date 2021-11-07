@@ -149,14 +149,16 @@ def train_main(
             return r
 
         with torch.autograd.graph.saved_tensors_hooks(pack_hook, unpack_hook):
+            logging.info(f'------- Set ActNN with '+str(cfg.ACTNN)+'bits -------')
             trainer = SelfSupervisionTrainer(
                 cfg, dist_run_id, checkpoint_path, checkpoint_folder, hooks, controller
             )
+            trainer.train()
     else:
         trainer = SelfSupervisionTrainer(
             cfg, dist_run_id, checkpoint_path, checkpoint_folder, hooks
         )
-    trainer.train()
+        trainer.train()
     logging.info("All Done!")
     # close the logging streams including the filehandlers
     shutdown_logging()
